@@ -1,7 +1,7 @@
 'user strict'
 
 const bcrypt = require('bcrypt')
-
+//const bcrypt = require('bcryptjs')
 class Users {//funcion que nos va a permitir crear usuarios en la DB
     constructor (db) {//Aqui recibe la DB ya inicializada
     this.db = db //=db ya que fue lo que recibimos por el constructor
@@ -9,14 +9,13 @@ class Users {//funcion que nos va a permitir crear usuarios en la DB
     this.collection = this.ref.child('users')//Aqui creamos una colección, this.ref.child(users)>> estamos creando un hijo en la raiz y el hijo se va a llamar users (nombre de la 'tabla' en la DB), con esto vamos a crear objetos dentro de una referencia que se llama users y es ahi donde vamos a crear todos nuestros usuarios
     }
     async create (data){//crear un metodo de esta clase (firebase almacena de forma asíncrona) (data)>> recibimos la información a crear
-        data.password = await this.constructor.encrypt(data.password)//Aqui estamos esperando la encriptacion del passwd como tal y la está guardando dentro de data.password
+        //data.password = await this.constructor.encrypt(data.password)//Aqui estamos esperando la encriptacion del passwd como tal y la está guardando dentro de data.password
         const user = {
             ...data
         }
-        user.password =await
-        this.constructor.encrypt(user.password)
+        user.password =await this.constructor.encrypt(user.password)
         const newUser = this.collection.push(user) //Guardamos la información .push >> va a crear una nueva referencia dentro de esta colección
-       // newUser.set(data) //.set >> para guardar la información, (data)>> la info que nos llega
+        newUser.set(user) //.set >> para guardar la información, (data)>> la info que nos llega
         return newUser.key //devolvemos la referencia del nuevo objeto creado que esta almacenado en la propiedad .key
     }
 

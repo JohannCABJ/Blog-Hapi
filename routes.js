@@ -2,7 +2,8 @@
 
 const site = require('./controller/site')
 const user = require('./controller/user')
-const Joi = require('joi')
+const Joi = require('@hapi/joi')
+const question = require('./controller/question')
 
 module.exports = [
 {
@@ -27,6 +28,18 @@ module.exports = [
     handler: user.logout
 
 },
+
+{
+    method:'GET',
+    path:'/question/{id}', //para definir un parametro en una ruta de hapi usamos{}y dentro la variable con la que se debe leer, esto permite leer con el objeto de params luego esa variable que en este caso es el id del objeto (la pregunta)que intentamos recuperar de firebase
+    handler:site.viewQuestion
+},
+{
+    method:'GET',
+    path:'/ask',
+    handler: site.ask
+
+},
 {
     method:'POST',
     path:'/create-user',
@@ -37,9 +50,10 @@ module.exports = [
                 name: Joi.string().required().min(3),
                 email:Joi.string().required().email(),
                 password:Joi.string().required().min(6)
-            })
-        }
+            }),
+            failAction:user.failValidation //creamos una funcion el controlador de user.js que se llame failValidation y nos va a permitir controlar todo esto
     }
+        }
 },
 {
     method:'POST',
@@ -50,18 +64,53 @@ module.exports = [
             payload:Joi.object({
                 email:Joi.string().required().email(),
                 password:Joi.string().required().min(6)
-            })
+            }),
+            failAction:user.failValidation
+        }
+    }
+},
+{
+    method:'POST',
+    path:'/create-question',
+    handler:question.createQuestion,
+    options:{
+        validate:{
+            payload:Joi.object({
+                title:Joi.string().required(),
+                description:Joi.string().required()
+            }),
+            failAction:user.failValidation
+        }
+    }
+},
+{
+    method:'POST',
+    path:'/answer-question',
+    handler:question.answerQuestion,
+    options:{
+        validate:{
+            payload:Joi.object({
+                answer:Joi.string().required(),
+                id:Joi.string().required()
+            }),
+            failAction:user.failValidation
         }
     }
 },
 {
     method:'GET',
-    path:'/{param*}', //comodín para hacer la ruta más general
+    path:'/assets/{param*}', //assets (prefijo) todos los assets van a estar servidos desde esta url (tendremos que cambiar nuestros layout para que lo reflejen)
     handler:{
         directory:{
             path:'.',
             index:['index.html']
         }
     }
-}
+},
+{
+    method:['GET','POST'], //para definiri que metodos pueden acceder a esta ruta (en este caso GET y POST) los metemos en un array para poder meter varios,
+    path: '/{any*}',    //Este es un path con comodin, es decir para cualquier parámetro que esté ahi (es decir cualquier cosa que caiga en cualquier ruta)
+     //las rutas resuleven en orden, es decir que se resolveran todas las rutas que definimos anteriormente y si se llega hasta esta ruta es porque se ha ingresado una ruta que no existe, (por esta razon esta ruta se deja de ultimas porque se resuelven todas las primeras rutas)
+    handler: site.notFound  //función del contraolador del site que llamaremos notFound
+    }
 ]

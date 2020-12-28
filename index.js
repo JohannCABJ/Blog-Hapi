@@ -5,8 +5,10 @@ const Hapi = require ('@hapi/hapi')
 const inert = require ('@hapi/inert')
 const path = require('path')
 const routes = require('./routes')
-const handlebars = require('handlebars')
+const handlebars = require('./lib/helpers')
+const site = require('./controller/site')
 const vision = require('@hapi/vision')
+
 
 const server = Hapi.server({
     port: process.env.PORT || 3000,//para efectos prácticos pasamos el puerto por variables de entorno
@@ -21,7 +23,7 @@ const server = Hapi.server({
 const init = async () =>{
 
     try {
-        await server.register(inert) //poner esta linea para que no devuelva error de h.file in not a function, con esto le decimos a hapi que vamos a usar inert, ya que solo con importarlo no basta
+        await server.register(inert) //poner esta linea para que no devuelva error de h.file iS not a function, con esto le decimos a hapi que vamos a usar inert, ya que solo con importarlo no basta
         await server.register(vision)
 
         server.state('userCookie',{  //server.state tiene dos parametros; 1.El nombre de la cookie y 2.especificando las propiedades
@@ -40,7 +42,7 @@ const init = async () =>{
                 layout:true,//Esta es una característica de handlebars, para que no nos toque repetir los mismos pedazos de html en todas las vistas
                 layoutPath:'views' //aqui le decimos donde van a estar los layouts (aqui lo vamos a poner junto con las vistas)
         })
-
+        server.ext ('onPreResponse', site.fileNotFound) //server.ext//método del servidor que nos permite escuchar un hook del lifecycle 'onPreResponse'//significa antes de que se envie la respuesta analice el controlador de site site.fileNotFound//intecpeta el response con la funcion que hay en site.fileNotFound
         server.route (routes)
         await server.start()
     }catch(error){
@@ -49,4 +51,12 @@ const init = async () =>{
     }
     console.log (`Servidor lanzado en ${server.info.uri}`)
 }
+
+process.on ('unhandledRejection', error =>{   //unhandledRejection (tiene dos parámetros, el 1. el 'unhandledException' y el 2. El cb con el error), error que nos genera una promesa que no está siendo controlada, siendo esto un catchOut de todos estos errores a nivel de proceso //error=> (funcion que loguea la excepcion)
+    console.error('unhandledRejection',error.message,error)    //loguenamos el error, decimos que es un unhandledRejection, definimos el error.message, error (imprimimos el error completo)
+})
+
+process.on('unhandledException', error => { //unhandledException es un error general de todo el sistema cuando hay una excepcion que no fue controlada
+    console.error ('unhandledException', error.message, error)
+} )
 init()
