@@ -9,6 +9,12 @@ module.exports = [
 {
     method:'GET',
     path:'/',
+    options:{ //objeto donde configuramos las opciones del caché
+        cache:{ //definimos las propieades del caché
+            expiresIn: 1000 * 30, //especificamos la duración del cache,//1000*3>>(3 miliseg ó 30 seg.)
+            privacy:'private' //privacidad del caché
+        }
+    },
     handler: site.home
 },
 {
@@ -32,7 +38,7 @@ module.exports = [
 {
     method:'GET',
     path:'/question/{id}', //para definir un parametro en una ruta de hapi usamos{}y dentro la variable con la que se debe leer, esto permite leer con el objeto de params luego esa variable que en este caso es el id del objeto (la pregunta)que intentamos recuperar de firebase
-    handler:site.viewQuestion
+    handler:site.viewQuestion //de esta manera ya tenemos una ruta que podemos consumir para marcar la repuesta correcta
 },
 {
     method:'GET',
@@ -74,11 +80,16 @@ module.exports = [
     path:'/create-question',
     handler:question.createQuestion,
     options:{
+        payload:{
+            multipart:true,
+            parse:true
+        },
         validate:{
             payload:Joi.object({
                 title:Joi.string().required(),
-                description:Joi.string().required()
-            }),
+                description:Joi.string().required(),
+                image:Joi.any().optional(),
+                }),
             failAction:user.failValidation
         }
     }
@@ -96,6 +107,11 @@ module.exports = [
             failAction:user.failValidation
         }
     }
+},
+{
+    method:'GET',
+    path:'/answer/{questionId}/{answerId}', //esta ruta lleva 2 parámetros, por lo que la ruta va a recibir ambos parámetros
+    handler:question.setAnswerRight
 },
 {
     method:'GET',

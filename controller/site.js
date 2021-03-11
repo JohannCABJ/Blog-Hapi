@@ -3,12 +3,8 @@
 const questions = require('../models/index').questions
 
 const home = async (req,h)=>{
-    let data
-    try {
-        data = await questions.getLast(10) //recuperamos las últimas 10 preguntas desde firebase
-    } catch (error) {
-        console.error(error)
-    }
+    const data = await req.server.methods.getLast(10)//recordemos que los metodos del servidor los accedemos desde el request//.getLast(10)>>el parámetro que le pasamos para recuperar las ultimas 10 preguntas
+
     return h.view ('index.hbs', {
         title:'home',
         message:'holaaa, soy un handlebars',
@@ -46,7 +42,7 @@ const viewQuestion = async (req, h)=>{   //como esta consumiendo datos del model
             return notFound (req,h) //si la pregunta no existe devolvemos el método notFound(definido despues de este (lineas abajo)) con el cual manejamos el 404
         }
     } catch (error) {
-        console.error(error)
+        console.error('aqui tambien',error)
     }
     return h.view ('question',{
         title:'Detalles de la pregunta',
@@ -61,8 +57,8 @@ const notFound = (req,h) =>{
 
 const fileNotFound = (req,h) =>{ //validacion de estaticos o assets
     const response = req.response //aqui obtenemos el objeto response del request
-    if (response.isBoom && response.output.statusCode === 404) {//preguntamos si este response tiene una variable que se llama isBoom, esto con el fin de interceptar el error && output.statusCode //Accedemos a la propiedad de statuscode de este response para ver si devuelve un 404
-       return h.view ('404',{ }, {layout:'error-layout'}).code (404) //Ya con la validacion del error, en caso de que suceda podemos retornar una vista
+    if (!req.path.startsWith('/api') && response.isBoom && response.output.statusCode === 404) {//preguntamos si este response tiene una variable que se llama isBoom, esto con el fin de interceptar el error && output.statusCode //Accedemos a la propiedad de statuscode de este response para ver si devuelve un 404//!req.path.startsWith('/api')>>si en el browser no viene la ruta /api siga con el boom de usuario (error para el usuario), si viene ruta '/api' entonces muestre error de desarrollador (404 de la api, en JSON)
+        return h.view ('404',{ }, {layout:'error-layout'}).code (404) //Ya con la validacion del error, en caso de que suceda podemos retornar una vista
     }
     return h.continue //lo que hace es continuar con el lifecycle del request si este no se cumple (si no se cumple con el if)
 }

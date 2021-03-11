@@ -16,15 +16,24 @@
     "standard": "^16.0.2"
   },
   "dependencies": {
+    "@hapi/basic": "^6.0.0",
     "@hapi/boom": "^9.1.0",
+    "@hapi/crumb": "^8.0.1",
+    "@hapi/good": "^9.0.1",
+    "@hapi/good-console": "^9.0.1",
     "@hapi/hapi": "^20.0.2",
     "@hapi/inert": "^6.0.3",
     "@hapi/joi": "^17.1.1",
+    "@hapi/scooter": "^6.0.1",
     "@hapi/vision": "^6.0.1",
     "bcrypt": "^5.0.0",
     "bcryptjs": "^2.4.3",
+    "blankie": "^5.0.0",
     "firebase-admin": "^9.4.1",
     "handlebars": "^4.7.6",
-    "joi": "^17.3.0"
+    "hapi-dev-errors": "^4.0.0",
+    "joi": "^17.3.0",
+    "scooter": "^5.0.2",
+    "uuid": "^8.3.2"
   }
 }

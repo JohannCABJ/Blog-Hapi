@@ -7,11 +7,15 @@ class Questions {
         this.collection = this.ref.child('questions') //creamos la colección (tabla en la DB)la cual identificaremos en firebase como questions
     }
 
-async create (data, user) { //creamos la función que creará las preguntas (lo hacemnos asincrono porque tenemos que hacer await de varias cosas) //data>>recibimos la info, //usuario>>el user que la esta creando (recordemos que el usuario ya está en una cookie)
+async create (info, user, filename) { //creamos la función que creará las preguntas (lo hacemnos asincrono porque tenemos que hacer await de varias cosas) //data>>recibimos la info, //usuario>>el user que la esta creando (recordemos que el usuario ya está en una cookie)
     const ask = {
-        ...data
+        description:info.description,
+        title:info.title,
+        owner: user //de esta forma seteampos la información del usuario, para que el usuario que creó la pregunta quede dentro del objeto data (lo que viene por el frm de crear la pregunta)
     }
-    ask.owner = user//de esta forma seteampos la información del usuario, para que el usuario que creó la pregunta quede dentro del objeto data (lo que viene por el frm de crear la pregunta)
+    if (filename) { //aqui preguntamos si nos llega filename(es deciri si nos llega archivo adjunto), no guardaremos el archivo en firebase, pero si guardaremos el nombre del archivo para poderlo visuarlizar despues
+        ask.filename = filename
+    }
     const question = this.collection.push()//aqui insertamos el resultado de la inserción en esta variable, //this.collection.push ()>> lo que hace es crear la referencia
     question.set(ask) //le damos la informacion a la referencia creada en la variable question, //question.set(data)>>esto haria la inserción
 
@@ -35,5 +39,21 @@ async answer (data,userCookie){ //data>>es un objeto del payload,//user>>el usua
     answers.set({text:data.answer, user:userCookie})  //le damos los valores a answers, //{text:data.answer, user:userCookie}>>le damos el valor a la respuesta, esto va a insertar la respuesta dentro del objeto de answer de la pregunta que tenemos actualmente
     return answers
 }
+async setAnswerRight(questionId,answerId,userCookie ) { //questionID>>es el id de la pregunta//answerId>>Es el id de la respuesta//userCookie>>El usuario que la está respondiendo
+    const query = await this.collection.child(questionId).once('value')  //le solicitamos a firebase que nos devuelva la pregunta como tal//.child(questionId)>>proque ya tenemos el ID de la pregunta//.once('value')>>cuando consiga la pregunta, tendremos todas las respuestas de esa pregunta//.once('value')>>PORQUE ES UNA PROMESA
+    const question = query.val() //transformamos el query en datos//query.val()>>PARA QUE NOS RETORNE EL VALOR DE ESTA PREGUNTA
+    const answers = question.answers  //Obtenbemos las respuestas de esta misma pregunta
+
+    if (!userCookie.email === question.owner.email){ //preguntamos si el usuario que tenemos en el email es igual al usuario dueño de la pregunta, esto nos va a garantizar que el usuario si es el dueño de la pregunta
+        return false
+    }
+    for (let key in answers){//para hacer el proceso de responder hacemos el for//let key in answers>>para recorrer todas las respuestas
+        answers[key].correct = (key === answerId)//vamos a coger todas las repuestas con su key, devolviendonos la respuesta actual que estamos iterando y le vamos a poner .correct, una nueva propiedad//(key===answerId)>>(key)la variable que estamos iterando es igual answerId,ESTO LO QUE HACE ES MARACAR LA PROPIEDAD CORRECT para la respuesta correcta
+        console.log( answers[key].correct)
+    }
+    const update = await this.collection.child(questionId).child('answers').update(answers)//aqui actualizamos la pregunta//.child(questionId)>>la pregunta//child('answers')>>porque lo que vamos a actualizar es el objeto de respuestas//.update('answers')porque lo que vamos a actualizar es el objeto de respuestas con la nueva información que es 'answers'
+    return update
+    //console.log(update)
+    }
 }
 module.exports = Questions
